@@ -98,20 +98,6 @@ class ANET():
         self.close_current_session(view=False)
         PLT.ioff()
 
-
-    def close_current_session(self, view=True):
-        self.save_session_params(sess=self.current_session)
-        TFT.close_session(self.current_session, view=view)
-
-    def save_session_params(self, spath='netsaver/my_saved_session', sess=None, step=0):
-        session = sess if sess else self.current_session
-        state_vars = []
-        for m in self.layer_modules:
-            vars = [m.getvar('wgt'), m.getvar('bias')]
-            state_vars = state_vars + vars
-        self.state_saver = tf.train.Saver(state_vars)
-        self.saved_state_path = self.state_saver.save(session, spath, global_step=step)
-
     def predict(self, num, bestk=None):
         self.reopen_current_session()
         tCases = self.case_manager.get_training_cases()
@@ -254,6 +240,19 @@ class ANET():
         self.run(epochs,sess=self.current_session,continued=True,bestk=bestk)
 
 
+    def close_current_session(self, view=True):
+        self.save_session_params(sess=self.current_session)
+        TFT.close_session(self.current_session, view=view)
+
+    def save_session_params(self, spath='netsaver/my_saved_session', sess=None, step=0):
+        session = sess if sess else self.current_session
+        state_vars = []
+        for m in self.layer_modules:
+            vars = [m.getvar('wgt'), m.getvar('bias')]
+            state_vars = state_vars + vars
+        self.state_saver = tf.train.Saver(state_vars)
+        self.saved_state_path = self.state_saver.save(session, spath, global_step=step)
+        
 
     def reopen_current_session(self):
         self.current_session = TFT.copy_session(self.current_session)  # Open a new session with same tensorboard stuff
