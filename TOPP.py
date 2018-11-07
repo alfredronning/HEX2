@@ -41,7 +41,9 @@ class TOPP:
             currentplayer = 3 - currentplayer
             if self.verbose: game.printBoard()
 
-        winner = 1 if game.getWinner == startingplayer else 2
+        winner = game.getWinner()
+        if startingplayer == 2:
+            winner = 3-winner
         agents[winner-1].wins += 1
         if self.verbose: print(agents[winner-1].name+" wins")
 
