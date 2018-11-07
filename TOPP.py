@@ -22,7 +22,7 @@ class TOPP:
         for i in range(len(self.agents)-1):
             for j in range(len(self.agents), i+1, -1):
                 startingplayer = 1
-                for k in range(self.gamesNum):
+                for _ in range(self.gamesNum):
                     self.playoutGame(self.agents[i], self.agents[j-1], startingplayer)
                     startingplayer = 3 - startingplayer
 
@@ -40,8 +40,10 @@ class TOPP:
             game = game.getChildStates()[move]
             currentplayer = 3 - currentplayer
             if self.verbose: game.printBoard()
-        agents[2-game.getWinner()].wins += 1
-        if self.verbose: print(agents[2-game.getWinner()].name+" wins")
+
+        winner = 1 if game.getWinner == startingplayer else 2
+        agents[winner-1].wins += 1
+        if self.verbose: print(agents[winner-1].name+" wins")
 
     
 
@@ -96,7 +98,7 @@ def main():
         numberOfAgents = 5,
         games = 2,
         loadPath = "netsaver/topp/agent",
-        verbose = False)
+        verbose = True)
 
     topp.playTournament()
 

@@ -10,7 +10,7 @@ import numpy as np
 
 class HexTrainer():
     def __init__(self, startState, anet, numberOfGames, numberOfSimulations, batchSize, verbose = True,
-            mixed = False, savedGames = None, saveFolder = "netsaver/topp/"):
+            mixed = False, savedGames = None, saveFolder = "netsaver/default/"):
 
         self.rootNode = MCNode(startState)
         self.numberOfGames = numberOfGames
@@ -44,7 +44,6 @@ class HexTrainer():
         for i in range(self.numberOfGames):
 
             currentNode = deepcopy(self.rootNode)
-            self.replayBuffer = []
 
             mcst = MCST(currentNode, self.anet, self.replayBuffer, self.numberOfSimulations)
 
@@ -70,7 +69,7 @@ class HexTrainer():
             #************** training of anet ************
             np.random.shuffle(self.replayBuffer)
             inputs = [case[0] for case in self.replayBuffer]; targets = [case[1] for case in self.replayBuffer] 
-            feeder = {self.anet.input: inputs, self.anet.target: targets}
+            feeder = {self.anet.input: inputs[:self.batchSize], self.anet.target: targets[:self.batchSize]}
             gvars = [self.anet.error]   
 
             _, error, _ = self.anet.run_one_step(
@@ -134,12 +133,12 @@ def main():
 
     trainer = HexTrainer(startState = startState,
         anet = anet,
-        numberOfGames = 60,
+        numberOfGames = 2000,
         numberOfSimulations = 500,
         batchSize = 20,
         verbose = False,
         savedGames = 5,
-        saveFolder = "netsaver/topp/")
+        saveFolder = "netsaver/last/")
 
     trainer.run()
 
