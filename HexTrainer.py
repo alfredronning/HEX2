@@ -3,6 +3,7 @@ from MCNode import MCNode
 from MCTS import MCST
 from ANET import ANET, CaseManager
 from copy import deepcopy
+from random import choice
 import tflowtools as TFT
 import numpy as np
 
@@ -31,8 +32,6 @@ class HexTrainer():
         print("Starting up playing "+str(self.numberOfGames)+" games: ")
         winsPlayer1 = 0
         winsPlayer2 = 0
-        startPlayer1 = 0
-
 
         self.anet.setupSession()
         self.anet.error_history = []
@@ -41,9 +40,11 @@ class HexTrainer():
         
         #saving the pilicy for 0 episodes
         self.anet.save_session_params(self.savePath, self.anet.current_session, 0)
+        print("saving game after "+str(0)+"episodes as "+ str(0))
         for i in range(self.numberOfGames):
 
             currentNode = deepcopy(self.rootNode)
+            self.replayBuffer = []
 
             mcst = MCST(currentNode, self.anet, self.replayBuffer, self.numberOfSimulations)
 
@@ -69,7 +70,7 @@ class HexTrainer():
             #************** training of anet ************
             np.random.shuffle(self.replayBuffer)
             inputs = [case[0] for case in self.replayBuffer]; targets = [case[1] for case in self.replayBuffer] 
-            feeder = {self.anet.input: inputs[:self.batchSize], self.anet.target: targets[:self.batchSize]}
+            feeder = {self.anet.input: inputs, self.anet.target: targets}
             gvars = [self.anet.error]   
 
             _, error, _ = self.anet.run_one_step(
@@ -79,7 +80,8 @@ class HexTrainer():
                 feed_dict=feeder,
                 display_interval=0
                 )
-            if self.verbose: print("error: "+str(error[0]))
+            #if self.verbose: 
+            print("error: "+str(error[0]))
             self.anet.error_history.append((i, error[0]))
             #*********************************************
 
@@ -93,10 +95,6 @@ class HexTrainer():
                     self.anet.save_session_params(self.savePath, self.anet.current_session, savedGameNum)
                     
                 
-
-
-        
-
         print("player 1 wins {} out of {} games: {} percent".format(winsPlayer1, self.numberOfGames, 100*winsPlayer1/self.numberOfGames))
         print("player 2 wins {} out of {} games: {} percent".format(winsPlayer2, self.numberOfGames, 100*winsPlayer2/self.numberOfGames))
 
@@ -118,13 +116,13 @@ def main():
     startState = HexState(player = 1, hexSize = size)
 
     anet = ANET(
-        layer_dims = [size*size*2+2, size*size*2+2, size*size],
+        layer_dims = [size*size*2+2, size*size*4+4, size*size*2+2, size*size],
         case_manager = CaseManager([]),
         learning_rate=0.001,
         display_interval=None,
         minibatch_size=10,
         validation_interval=None,
-        softmax=False,
+        softmax=True,
         error_function="ce",
         hidden_activation_function="relu",
         optimizer="adam",
@@ -136,10 +134,10 @@ def main():
 
     trainer = HexTrainer(startState = startState,
         anet = anet,
-        numberOfGames = 100,
-        numberOfSimulations = 200,
-        batchSize = 10,
-        verbose = True,
+        numberOfGames = 60,
+        numberOfSimulations = 500,
+        batchSize = 20,
+        verbose = False,
         savedGames = 5,
         saveFolder = "netsaver/topp/")
 

@@ -12,7 +12,7 @@ class MCST():
 
     def findNextMove(self, currentNode):
         """Finds the next move for the actual game"""
-        for i in range(self.numberOfSimulations):
+        for _ in range(self.numberOfSimulations):
 
             #selection with UCB untill unvisited node
             selectedNode = self.threeSearch(currentNode)
@@ -55,8 +55,7 @@ class MCST():
     
             legalMoves = selectedNode.state.legalMoves
         
-            anetOutput = self.anet.current_session.run(self.anet.output, feed_dict=feeder)
-            anetOutput = anetOutput[0]
+            anetOutput = self.anet.current_session.run(self.anet.output, feed_dict=feeder)[0]
             for i in range(len(anetOutput)):
                 anetOutput[i] = anetOutput[i] * legalMoves[i]
             anetOutput = [float(i)/sum(anetOutput) for i in anetOutput]
@@ -88,9 +87,6 @@ class MCST():
         for move in range(len(lMoves)):
             if lMoves[move] == 1:
                 Dnorm[move] = Dpre.pop(0)
-        np.normalize()
+        Dnorm = [float(i)/sum(Dnorm) for i in Dnorm]
         case = [inp, Dnorm]
-        if(sum(Dnorm) != 1):
-            print("WROOONG HERE!!!!")
-            print(sum(Dnorm))
         self.replayBuffer.append(case)
