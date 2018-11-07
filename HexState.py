@@ -96,6 +96,8 @@ class HexState:
             neuralRepr.append(float(0)); neuralRepr.append(float(1))
         return neuralRepr
 
+                
+
     # builds the board with inital cells
     def buildBoard(self):
         self.board = [[HexCell() for i in range(self.hexSize)] for i in range(self.hexSize)]
