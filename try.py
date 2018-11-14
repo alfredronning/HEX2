@@ -1,6 +1,5 @@
 from copy import deepcopy
 from math import floor
-from random import choice
 
 class HexState:
     def __init__(self, player = 1, hexSize = 2, legalMoves = None, board = None):
@@ -22,65 +21,50 @@ class HexState:
 
     def isOver(self):
         """Returns true if one player have won the game"""
+        whiteSideLeft, whiteSideRight, blackSideLeft, blackSideRight = self.getHexSides()
 
-        whiteSideRight = []; blackSideRight = []
         unvisitedWhiteNodes = []; unvisitedBlackNodes = []
         visitedWhiteNodes = []; visitedBlackNodes = []
-        size = self.hexSize
-        board = self.board
         #Checks if white have won
-        for i in range(size):
-            if self.board[i][0] == 1:
-                unvisitedWhiteNodes.append((i, 0))
-            whiteSideRight.append((i, size - 1))
+        for node in whiteSideLeft:
+            if node.value == 1: unvisitedWhiteNodes.append(node)
         while unvisitedWhiteNodes:
-            checkNode = unvisitedWhiteNodes.pop(0)
-            for neighbor in self.getNeighbours(checkNode):
-                if board[neighbor[0]][neighbor[1]] == 1 and neighbor not in unvisitedWhiteNodes and neighbor not in visitedWhiteNodes:
+            checkNode = unvisitedWhiteNodes[0]
+            for neighbor in checkNode.neighbours:
+                if neighbor.value == 1 and neighbor not in unvisitedWhiteNodes and neighbor not in visitedWhiteNodes:
                     unvisitedWhiteNodes.append(neighbor)
-            visitedWhiteNodes.append(checkNode)
+            visitedWhiteNodes.append(unvisitedWhiteNodes.pop(0))
             if checkNode in whiteSideRight:
                 self.winner = 1
                 return True
         #Checks if black have won
-        for i in range(size):
-            if self.board[size-1][i] == 2:
-                unvisitedBlackNodes.append((size - 1, i))
-            blackSideRight.append((0, i))
+        for node in blackSideLeft:
+            if node.value == 2: unvisitedBlackNodes.append(node)
         while unvisitedBlackNodes:
-            checkNode = unvisitedBlackNodes.pop(0)
-            for neighbor in self.getNeighbours(checkNode):
-                if board[neighbor[0]][neighbor[1]] == 2 and neighbor not in unvisitedBlackNodes and neighbor not in visitedBlackNodes:
+            checkNode = unvisitedBlackNodes[0]
+            for neighbor in checkNode.neighbours:
+                if neighbor.value == 2 and neighbor not in unvisitedBlackNodes and neighbor not in visitedBlackNodes:
                     unvisitedBlackNodes.append(neighbor)
-            visitedBlackNodes.append(checkNode)
+            visitedBlackNodes.append(unvisitedBlackNodes.pop(0))
             if checkNode in blackSideRight:
                 self.winner = 2
                 return True
 
         return False
 
-    def getNeighbours(self, tup):
-        neighbours = []
-        maxIndex = self.hexSize - 1
-        if tup[0] - 1 >= 0:
-            neighbours.append((tup[0]-1, tup[1]))
-      
-        if tup[0] - 1 >= 0 and tup[1]  +1 <= maxIndex:
-            neighbours.append((tup[0]-1,tup[1]+1))
-
-        if tup[1]-1 >= 0:
-            neighbours.append((tup[0], tup[1]-1))
-
-        if tup[1] + 1 <= maxIndex:
-            neighbours.append((tup[0], tup[1]+1))
-
-        if tup[0] + 1 <= maxIndex and tup[1] - 1 >= 0:
-            neighbours.append((tup[0]+1, tup[1]-1))
-
-        if tup[0] + 1 <= maxIndex:
-            neighbours.append((tup[0]+1, tup[1]))
-        return neighbours
-
+    """ def isOver(self):
+        """#Returns true if one player have won the game
+        """
+        size = self.hexSize
+        for i in range(size):
+            if self.pathLength(1, i, 0, 0) == size:
+                self.winner = 1
+                return True
+        for i in range(size):
+            if self.pathLength(2, 0, i, 0) == size:
+                self.winner = 2
+                return True
+        return False """
 
     def getWinner(self):
         """Returns the winner of this state. None for unfinnished states"""
@@ -111,12 +95,6 @@ class HexState:
         self.legalMoves[index] = 0
         self.player = 3 - self.player
 
-    def playRandom(self):
-        moves = [i for i, x in enumerate(self.legalMoves) if x == 1]
-        move = choice(moves)
-        self.board[int(move/self.hexSize)][move%self.hexSize] = self.player
-        self.legalMoves[move] = 0
-        self.player = 3 - self.player
 
     # returns the vector-representation of the boardstate
     def getNeuralRepresentation(self):
@@ -136,6 +114,27 @@ class HexState:
             neuralRepr.append(float(0)); neuralRepr.append(float(1))
         return neuralRepr
 
+    """ def pathLength(self, player, row, col, sameRowIndex):
+        """#Returns length from this location on the board to the end of the board
+        """
+        if row < 0 or row > self.hexSize-1 or col < 0 or col > self.hexSize-1:
+            return 0
+        if self.board[row][col] != player:
+            return 0
+        if player == 1:
+            pathLengths = [self.pathLength(player, row, col+1, 0), self.pathLength(player, row-1, col+1, 0)]
+            if sameRowIndex!=-1:
+                pathLengths.append(self.pathLength(player, row+1, col, 1)-1)
+            if sameRowIndex!=1:
+                pathLengths.append(self.pathLength(player, row-1, col, -1)-1)
+            return 1 + max(pathLengths)
+        #if player = 2
+        pathLengths = [self.pathLength(player, row+1, col, 0), self.pathLength(player, row+1, col-1, 0)]
+        if sameRowIndex!=-1:
+            pathLengths.append(self.pathLength(player, row, col+1, 1)-1)
+        if sameRowIndex!=1:
+            pathLengths.append(self.pathLength(player, row, col-1, -1)-1)
+        return 1 + max(pathLengths) """
 
     def coordinateIsInBoard(self, iRow, iCol):
         maxIndex = self.hexSize - 1

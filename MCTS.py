@@ -1,5 +1,8 @@
 import numpy as np
 from sklearn import preprocessing
+from copy import deepcopy
+from HexState import HexState
+from MCNode import MCNode
 
 class MCST():
     def __init__(self, startNode, anet, replayBuffer, numberOfSimulations):
@@ -13,7 +16,6 @@ class MCST():
     def findNextMove(self, currentNode):
         """Finds the next move for the actual game"""
         for _ in range(self.numberOfSimulations):
-
             #selection with UCB untill unvisited node
             selectedNode = self.threeSearch(currentNode)
 
@@ -24,7 +26,10 @@ class MCST():
                 selectedNode = selectedNode.getRandomChild()
 
             #simulate a single rollout
-            score = self.rollout(selectedNode)
+            #score = self.rollout(selectedNode) #27.7s
+            score = self.rollout2(selectedNode) #20.9s
+            #score = self.randomRollout(selectedNode) #5.0s
+            #score = self.randomRollout2(selectedNode) #3.9s
 
             #backpropogate the score from the rollout from the selected node up to root
             self.backPropagate(selectedNode, score)
@@ -66,6 +71,34 @@ class MCST():
                     index -= 1
             selectedNode = selectedNode.getChildNodes()[index]
         return 1 if selectedNode.state.getWinner() == self.startingPlayer else -1
+
+    def rollout2(self, selectedNode):
+        stateCopy = HexState(selectedNode.state.player, selectedNode.state.hexSize, selectedNode.state.legalMoves[:], [row[:] for row in selectedNode.state.board])
+        """Plays out random untill terminal state"""
+        while(not stateCopy.isOver()):
+            neuralState = stateCopy.getNeuralRepresentation()
+            feeder = {self.anet.input: [neuralState]}
+            anetOutput = self.anet.current_session.run(self.anet.output, feed_dict=feeder)[0]
+
+            legalMoves = stateCopy.legalMoves
+            for i in range(len(anetOutput)):
+                anetOutput[i] = anetOutput[i] * legalMoves[i]
+            index = np.where(anetOutput == max(anetOutput))[0][0]
+            #need to remove one index for each illegal move, because there is no child for that move
+            stateCopy.makeMove(index)
+        return 1 if stateCopy.getWinner() == self.startingPlayer else -1
+
+    def randomRollout(self, selectedNode):
+        while not selectedNode.state.isOver():
+            selectedNode = selectedNode.getRandomChild()
+        return 1 if selectedNode.state.getWinner() == self.startingPlayer else -1
+
+    def randomRollout2(self, selectedNode):
+        state = HexState(selectedNode.state.player, selectedNode.state.hexSize, selectedNode.state.legalMoves[:], [row[:] for row in selectedNode.state.board])
+        while not state.isOver():
+            state.playRandom()
+        return 1 if state.getWinner() == self.startingPlayer else -1
+            
 
     def backPropagate(self, selectedNode, score):
         """Update all parents with score"""

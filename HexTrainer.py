@@ -6,6 +6,7 @@ from copy import deepcopy
 from random import choice
 import tflowtools as TFT
 import numpy as np
+import cProfile
 
 
 class HexTrainer():
@@ -36,12 +37,13 @@ class HexTrainer():
         self.anet.setupSession()
         self.anet.error_history = []
         self.anet.validation_history = []
-        self.replayBuffer = []
+        self.replayBuffer = [] #fast str
         
         #saving the pilicy for 0 episodes
         self.anet.save_session_params(self.savePath, self.anet.current_session, 0)
-        print("saving game after "+str(0)+"episodes as "+ str(0))
+        print("saving game after "+str(0)+" episodes as "+ str(0))
         for i in range(self.numberOfGames):
+
 
             currentNode = deepcopy(self.rootNode)
 
@@ -70,7 +72,7 @@ class HexTrainer():
             np.random.shuffle(self.replayBuffer)
             inputs = [case[0] for case in self.replayBuffer]; targets = [case[1] for case in self.replayBuffer] 
             feeder = {self.anet.input: inputs[:self.batchSize], self.anet.target: targets[:self.batchSize]}
-            gvars = [self.anet.error]   
+            gvars = [self.anet.error]
 
             _, error, _ = self.anet.run_one_step(
                 [self.anet.trainer],
@@ -90,7 +92,7 @@ class HexTrainer():
                 if (i+1) % saveInterval == 0:
 
                     savedGameNum = int((i+1)/saveInterval)
-                    print("saving game after "+str(i+1)+"episodes as "+ str(savedGameNum))
+                    print("saving game after "+str(i+1)+" episodes as "+ str(savedGameNum))
                     self.anet.save_session_params(self.savePath, self.anet.current_session, savedGameNum)
                     
                 
@@ -103,19 +105,19 @@ class HexTrainer():
         self.anet.close_current_session(view=False)
 
         #loop to keep program from closing at the end so we can view the graph
-        x = ""
-        while x == "":
-            x = str(input("enter any key to quit"))
+        #x = ""
+        #while x == "":
+            #x = str(input("enter any key to quit"))
 
     
 
 def main():
-    size = 3
+    size = 5
 
     startState = HexState(player = 1, hexSize = size)
 
     anet = ANET(
-        layer_dims = [size*size*2+2, size*size*4+4, size*size*2+2, size*size],
+        layer_dims = [size*size*2+2, size*size, size*size],
         case_manager = CaseManager([]),
         learning_rate=0.001,
         display_interval=None,
@@ -133,14 +135,16 @@ def main():
 
     trainer = HexTrainer(startState = startState,
         anet = anet,
-        numberOfGames = 2000,
-        numberOfSimulations = 500,
-        batchSize = 20,
+        numberOfGames = 2,
+        numberOfSimulations = 100,
+        batchSize = 64,
         verbose = False,
         savedGames = 5,
-        saveFolder = "netsaver/last/")
+        saveFolder = "netsaver/topp5random/")
 
     trainer.run()
 
 if __name__ == '__main__':
+
     main()
+    #cProfile.run('main()')

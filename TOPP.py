@@ -93,14 +93,16 @@ class HexAgent:
         return bestMove
 
 def main():
-    size = 3
+    size = 5
 
-    topp = TOPP(layerDims=[size*size*2+2, size*size*4+4, size*size*2+2, size*size],
+    topp = TOPP(layerDims=[size*size*2+2, size*size, size*size],
         hexSize = size,
         numberOfAgents = 5,
         games = 2,
-        loadPath = "netsaver/topp/agent",
+        loadPath = "netsaver/topp5random/agent",
         verbose = True)
+
+    topp
 
     topp.playTournament()
 
