@@ -24,36 +24,36 @@ class HexState:
         """Returns true if one player have won the game"""
 
         whiteSideRight = []; blackSideRight = []
-        unvisitedWhiteNodes = []; unvisitedBlackNodes = []
-        visitedWhiteNodes = []; visitedBlackNodes = []
+        unvisitedWhiteCells = []; unvisitedBlackCells = []
+        visitedWhiteCells = []; visitedBlackCells = []
         size = self.hexSize
         board = self.board
         #Checks if white have won
         for i in range(size):
             if self.board[i][0] == 1:
-                unvisitedWhiteNodes.append((i, 0))
+                unvisitedWhiteCells.append((i, 0))
             whiteSideRight.append((i, size - 1))
-        while unvisitedWhiteNodes:
-            checkNode = unvisitedWhiteNodes.pop(0)
-            for neighbor in self.getNeighbours(checkNode):
-                if board[neighbor[0]][neighbor[1]] == 1 and neighbor not in unvisitedWhiteNodes and neighbor not in visitedWhiteNodes:
-                    unvisitedWhiteNodes.append(neighbor)
-            visitedWhiteNodes.append(checkNode)
-            if checkNode in whiteSideRight:
+        while unvisitedWhiteCells:
+            checkCell = unvisitedWhiteCells.pop(0)
+            for neighbor in self.getNeighbours(checkCell):
+                if board[neighbor[0]][neighbor[1]] == 1 and neighbor not in unvisitedWhiteCells and neighbor not in visitedWhiteCells:
+                    unvisitedWhiteCells.append(neighbor)
+            visitedWhiteCells.append(checkCell)
+            if checkCell in whiteSideRight:
                 self.winner = 1
                 return True
         #Checks if black have won
         for i in range(size):
             if self.board[size-1][i] == 2:
-                unvisitedBlackNodes.append((size - 1, i))
+                unvisitedBlackCells.append((size - 1, i))
             blackSideRight.append((0, i))
-        while unvisitedBlackNodes:
-            checkNode = unvisitedBlackNodes.pop(0)
-            for neighbor in self.getNeighbours(checkNode):
-                if board[neighbor[0]][neighbor[1]] == 2 and neighbor not in unvisitedBlackNodes and neighbor not in visitedBlackNodes:
-                    unvisitedBlackNodes.append(neighbor)
-            visitedBlackNodes.append(checkNode)
-            if checkNode in blackSideRight:
+        while unvisitedBlackCells:
+            checkCell = unvisitedBlackCells.pop(0)
+            for neighbor in self.getNeighbours(checkCell):
+                if board[neighbor[0]][neighbor[1]] == 2 and neighbor not in unvisitedBlackCells and neighbor not in visitedBlackCells:
+                    unvisitedBlackCells.append(neighbor)
+            visitedBlackCells.append(checkCell)
+            if checkCell in blackSideRight:
                 self.winner = 2
                 return True
 
